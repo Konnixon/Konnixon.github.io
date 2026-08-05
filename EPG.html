@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>SkyOS EPG – Program TV</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#020617;
+    --panel:#050b1f;
+    --accent:#00b7ff;
+    --muted:#9ca3af;
+    --minute-width:4; /* px na minutę */
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  html,body{margin:0;height:100%;background:radial-gradient(circle at top,#0b1733,#020617);color:#f9fafb;overflow:hidden}
+  .epg-shell{display:flex;flex-direction:column;height:100%;padding:16px 20px;box-sizing:border-box;gap:12px}
+  .epg-header{display:flex;justify-content:space-between;align-items:center}
+  .epg-title{font-size:20px;font-weight:600}
+  .epg-time{font-size:14px;color:var(--muted)}
+  .epg-main{flex:1;display:flex;flex-direction:column;gap:8px;position:relative}
+  .time-row{display:flex;margin-left:180px;position:relative}
+  .time-slot{width:120px;text-align:center;font-size:12px;color:var(--muted)}
+  .now-line{
+    position:absolute;top:32px;bottom:0;width:2px;background:var(--accent);
+    box-shadow:0 0 12px rgba(0,183,255,.8);pointer-events:none;
+  }
+  .epg-grid{flex:1;display:flex;flex-direction:column;gap:4px;overflow:auto;position:relative;background:linear-gradient(180deg,#050b1f,#020617);border-radius:12px;padding:8px 0}
+  .channel-row{display:flex;position:relative;height:72px;align-items:center}
+  .channel-info{width:180px;padding:0 12px;display:flex;align-items:center;gap:10px}
+  .channel-logo{width:40px;height:40px;border-radius:8px;background:#111827;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+  .channel-name{font-size:14px;font-weight:500}
+  .program-track{flex:1;position:relative;height:100%}
+  .program{
+    position:absolute;top:8px;height:56px;border-radius:10px;
+    background:linear-gradient(135deg,#0b1f3b,#12254a);
+    border:1px solid rgba(148,163,184,.35);
+    box-shadow:0 10px 24px rgba(15,23,42,.8);
+    padding:6px 10px;box-sizing:border-box;
+    display:flex;flex-direction:column;justify-content:space-between;
+    font-size:12px;cursor:pointer;
+    transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;
+  }
+  .program-title{font-weight:600;font-size:13px}
+  .program-time{color:var(--muted);font-size:11px}
+  .program:focus{
+    outline:none;
+    transform:scale(1.05);
+    border-color:#38bdf8;
+    box-shadow:0 16px 40px rgba(56,189,248,.7);
+    z-index:10;
+  }
+  .program.current{background:linear-gradient(135deg,#0b2f4f,#1d4ed8);border-color:#38bdf8;}
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(15,23,42,.8);
+    display:none;align-items:center;justify-content:center;z-index:50;
+  }
+  .modal{
+    width:420px;max-width:90%;background:#020617;border-radius:16px;
+    box-shadow:0 24px 60px rgba(0,0,0,.9);padding:18px 20px;box-sizing:border-box;
+    border:1px solid rgba(148,163,184,.4);
+  }
+  .modal-title{font-size:18px;font-weight:600;margin-bottom:6px}
+  .modal-time{font-size:13px;color:var(--muted);margin-bottom:10px}
+  .modal-desc{font-size:13px;color:#e5e7eb;margin-bottom:16px}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px}
+  .btn{padding:8px 14px;border-radius:999px;border:none;font-size:13px;cursor:pointer}
+  .btn-primary{background:var(--accent);color:#020617;font-weight:600}
+  .btn-secondary{background:#111827;color:#e5e7eb}
+</style>
+</head>
+<body>
+<div class="epg-shell">
+  <header class="epg-header">
+    <div class="epg-title">SkyOS Guide – Program TV</div>
+    <div class="epg-time" id="clock"></div>
+  </header>
+
+  <section class="epg-main">
+    <div class="time-row" id="timeRow"></div>
+    <div class="now-line" id="nowLine"></div>
+    <div class="epg-grid" id="epgGrid"></div>
+  </section>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-time" id="modalTime"></div>
+    <div class="modal-desc" id="modalDesc"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="modalClose">Zamknij</button>
+      <button class="btn btn-primary">Oglądaj</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== KONFIGURACJA KANAŁÓW – OSOBNE JSONY =====
+// Tu podmieniasz ścieżki na swoje pliki JSON (lokalne lub z sieci)
+const channelFiles = [
+  p.start = convertToPolishTime(p.start),
+
+  "https://www.bbc.co.uk/schedules/p00fzl6p.json",
+  "channels/bbc_two.json",
+  "channels/itv.json",
+  "channels/channel4.json",
+  "channels/polsat.json",
+  "channels/tvp1.json",
+  "channels/tvp2.json",
+  "channels/tvp3.json",
+  "channels/tvp4.json",
+p.end   = convertToPolishTime(p.end),
+];
+
+
+
+
+let epgData = [];
+let programElements = [];
+let focusedProgram = null;
+
+// ===== CZAS SIATKI =====
+const dayStart = "06:00";
+const dayEnd   = "24:00";
+function parseTime(str){
+  const [h,m] = str.split(":").map(Number);
+  return h*60 + m;
+}
+const startMinutes = parseTime(dayStart);
+const endMinutes   = parseTime(dayEnd);
+
+// ===== ŁADOWANIE JSONÓW KANAŁÓW =====
+async function loadChannel(file){
+  const res = await fetch(file);
+  if(!res.ok) throw new Error("HTTP " + res.status);
+  return await res.json();
+}
+async function loadAllChannels(){
+  const loaded = [];
+  for(const file of channelFiles){
+    try{
+      const ch = await loadChannel(file);
+      loaded.push(ch);
+    }catch(err){
+      console.error("Błąd ładowania kanału:", file, err);
+    }
+  }
+  return loaded;
+}
+
+// ===== RENDER PASKA CZASU =====
+const timeRow = document.getElementById("timeRow");
+function renderTimeRow(){
+  const minuteWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--minute-width"));
+  for(let t = startMinutes; t <= endMinutes; t += 60){
+    const slot = document.createElement("div");
+    slot.className = "time-slot";
+    const h = String(Math.floor(t/60)).padStart(2,"0");
+    slot.textContent = `${h}:00`;
+    slot.style.width = (60*minuteWidth) + "px";
+    timeRow.appendChild(slot);
+  }
+}
+
+// ===== RENDER SIATKI EPG =====
+const epgGrid = document.getElementById("epgGrid");
+function renderEPG(){
+  epgGrid.innerHTML = "";
+  programElements = [];
+  const minuteWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--minute-width"));
+
+  epgData.forEach((channel, chIndex)=>{
+    const row = document.createElement("div");
+    row.className = "channel-row";
+
+    const info = document.createElement("div");
+    info.className = "channel-info";
+    const logo = document.createElement("div");
+    logo.className = "channel-logo";
+    logo.textContent = channel.logo || channel.name.slice(0,3);
+    const name = document.createElement("div");
+    name.className = "channel-name";
+    name.textContent = channel.name;
+    info.appendChild(logo);
+    info.appendChild(name);
+
+    const track = document.createElement("div");
+    track.className = "program-track";
+
+    (channel.programs || []).forEach((p, pIndex)=>{
+      const start = parseTime(p.start);
+      const end   = parseTime(p.end);
+      const duration = end - start;
+      const left = (start - startMinutes) * minuteWidth;
+      const width = duration * minuteWidth;
+
+      const prog = document.createElement("button");
+      prog.className = "program";
+      prog.style.left = left + "px";
+      prog.style.width = width + "px";
+      prog.tabIndex = 0;
+      prog.dataset.channelIndex = chIndex;
+      prog.dataset.programIndex = pIndex;
+
+      const title = document.createElement("div");
+      title.className = "program-title";
+      title.textContent = p.title;
+      const time = document.createElement("div");
+      time.className = "program-time";
+      time.textContent = `${p.start} – ${p.end}`;
+
+      prog.appendChild(title);
+      prog.appendChild(time);
+      track.appendChild(prog);
+      programElements.push(prog);
+    });
+
+    row.appendChild(info);
+    row.appendChild(track);
+    epgGrid.appendChild(row);
+  });
+
+  setupProgramEvents();
+  markCurrentPrograms();
+  scrollToNow();
+  if(programElements[0]){
+    focusedProgram = programElements[0];
+    focusedProgram.focus();
+  }
+}
+
+// ===== PASEK „NOW” + AUTO-SCROLL =====
+const nowLine = document.getElementById("nowLine");
+function updateNowLine(){
+  const now = new Date();
+  const minutesNow = now.getHours()*60 + now.getMinutes();
+  const clamped = Math.max(startMinutes, Math.min(endMinutes, minutesNow));
+  const offsetMinutes = clamped - startMinutes;
+  const minuteWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--minute-width"));
+  const px = offsetMinutes * minuteWidth;
+  nowLine.style.left = (180 + px) + "px";
+}
+function scrollToNow(){
+  const now = new Date();
+  const minutesNow = now.getHours()*60 + now.getMinutes();
+  const offsetMinutes = Math.max(0, minutesNow - startMinutes);
+  const minuteWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--minute-width"));
+  const px = offsetMinutes * minuteWidth;
+  epgGrid.scrollLeft = px - 200;
+}
+function markCurrentPrograms(){
+  const now = new Date();
+  const minutesNow = now.getHours()*60 + now.getMinutes();
+  programElements.forEach(el=>{
+    const ch = epgData[el.dataset.channelIndex];
+    const p  = ch.programs[el.dataset.programIndex];
+    const s = parseTime(p.start);
+    const e = parseTime(p.end);
+    if(minutesNow >= s && minutesNow < e){
+      el.classList.add("current");
+    }else{
+      el.classList.remove("current");
+    }
+  });
+}
+
+// ===== ZEGAR =====
+const clockEl = document.getElementById("clock");
+function updateClock(){
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,"0");
+  const m = String(now.getMinutes()).padStart(2,"0");
+  clockEl.textContent = `Teraz: ${h}:${m}`;
+}
+
+// ===== MODAL SZCZEGÓŁÓW =====
+const modalBackdrop = document.getElementById("modalBackdrop");
+const modalTitle = document.getElementById("modalTitle");
+const modalTime = document.getElementById("modalTime");
+const modalDesc = document.getElementById("modalDesc");
+const modalClose = document.getElementById("modalClose");
+
+function openProgramDetails(el){
+  const ch = epgData[el.dataset.channelIndex];
+  const p  = ch.programs[el.dataset.programIndex];
+  modalTitle.textContent = p.title;
+  modalTime.textContent = `${ch.name} • ${p.start} – ${p.end}`;
+  modalDesc.textContent = p.desc || "Brak dodatkowego opisu.";
+  modalBackdrop.style.display = "flex";
+}
+function closeModal(){
+  modalBackdrop.style.display = "none";
+}
+modalClose.addEventListener("click", closeModal);
+modalBackdrop.addEventListener("click", e=>{
+  if(e.target === modalBackdrop) closeModal();
+});
+
+// ===== NAWIGACJA PILOTEM / KLAWIATURĄ =====
+function setupProgramEvents(){
+  programElements.forEach(el=>{
+    el.addEventListener("click", ()=>openProgramDetails(el));
+    el.addEventListener("focus", ()=>{ focusedProgram = el; });
+  });
+}
+
+document.addEventListener("keydown", e=>{
+  if(modalBackdrop.style.display === "flex"){
+    if(e.key === "Escape") closeModal();
+    return;
+  }
+  if(!focusedProgram) return;
+  const key = e.key;
+  const idx = programElements.indexOf(focusedProgram);
+  if(idx === -1) return;
+
+  if(key === "Enter"){
+    openProgramDetails(focusedProgram);
+    e.preventDefault();
+    return;
+  }
+
+  const curCh = Number(focusedProgram.dataset.channelIndex);
+  const curP  = Number(focusedProgram.dataset.programIndex);
+
+  if(key === "ArrowRight"){
+    const next = programElements.find(el =>
+      Number(el.dataset.channelIndex) === curCh &&
+      Number(el.dataset.programIndex) === curP + 1
+    );
+    if(next){ focusedProgram = next; focusedProgram.focus(); }
+    e.preventDefault();
+  }else if(key === "ArrowLeft"){
+    const prev = programElements.find(el =>
+      Number(el.dataset.channelIndex) === curCh &&
+      Number(el.dataset.programIndex) === curP - 1
+    );
+    if(prev){ focusedProgram = prev; focusedProgram.focus(); }
+    e.preventDefault();
+  }else if(key === "ArrowDown"){
+    const nextCh = programElements.find(el =>
+      Number(el.dataset.channelIndex) === curCh + 1 &&
+      Number(el.dataset.programIndex) === curP
+    );
+    if(nextCh){ focusedProgram = nextCh; focusedProgram.focus(); }
+    e.preventDefault();
+  }else if(key === "ArrowUp"){
+    const prevCh = programElements.find(el =>
+      Number(el.dataset.channelIndex) === curCh - 1 &&
+      Number(el.dataset.programIndex) === curP
+    );
+    if(prevCh){ focusedProgram = prevCh; focusedProgram.focus(); }
+    e.preventDefault();
+  }
+});
+
+// ===== START =====
+(async function init(){
+  renderTimeRow();
+  updateClock();
+  setInterval(updateClock, 30*1000);
+  updateNowLine();
+  setInterval(updateNowLine, 60*1000);
+
+  epgData = await loadAllChannels();
+  renderEPG();
+  setInterval(markCurrentPrograms, 60*1000);
+  function convertToPolishTime(iso){
+  const d = new Date(iso);
+  const hh = String(d.getHours()).padStart(2,"0");
+  const mm = String(d.getMinutes()).padStart(2,"0");
+  return `${hh}:${mm}`;
+}
+
+})();
+</script>
+</body>
+</html>
