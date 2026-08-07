@@ -1,0 +1,180 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #05060a;
+    font-family: system-ui, sans-serif;
+    color: #fff;
+    overflow: hidden;
+}
+
+/* ---------------- TOPBAR ---------------- */
+
+.topbar {
+    width: 100%;
+    height: 60px;
+    background: #0a0b10;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 0 20px;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.topbar a {
+    color: #fff;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.topbar a.active,
+.topbar a:focus {
+    background: #00ff80;
+    color: #000;
+    outline: none;
+}
+
+.version {
+    margin-left: auto;
+    opacity: 0.6;
+}
+
+/* ---------------- PAGE ---------------- */
+
+.page {
+    width: 100vw;
+    height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0 20px 20px 20px;
+    overflow: hidden;
+}
+
+/* ---------------- SLIDER ---------------- */
+
+.slider-container {
+    width: 100%;
+    height: 40vh;
+    min-height: 300px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0;
+    flex-shrink: 0;
+}
+
+.slider-track {
+    display: flex;
+    height: 100%;
+    width: 500%;
+    transition: transform 0.4s ease;
+}
+
+.slide {
+    flex: 0 0 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 4px solid transparent;
+    outline: none;
+    transition: 0.25s ease;
+    display: block;
+}
+
+.slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+}
+
+.slide:focus {
+    border-color: #00ff80;
+    transform: scale(1.02);
+    box-shadow: 0 0 25px rgba(0, 255, 128, 0.8);
+    z-index: 2;
+}
+
+.dots {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+}
+
+.dot.active {
+    background: #00ff80;
+}
+
+/* ---------------- CAROUSELS ---------------- */
+
+.row-title {
+    font-size: 20px;
+    margin-bottom: 6px;
+    margin-left: 4px;
+}
+
+.carousel {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.carousel-track {
+    display: flex;
+    gap: 16px;
+    transition: transform 0.3s ease;
+}
+
+.tile {
+    width: 320px;
+    height: 180px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 4px solid transparent;
+    outline: none;
+    transition: 0.25s ease;
+    background: #111;
+    position: relative;
+}
+
+.tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.25s ease;
+}
+
+.tile:focus {
+    background: radial-gradient(circle at center, rgba(0, 255, 128, 0.25), rgba(0, 255, 128, 0.05));
+    box-shadow: 0 0 30px rgba(0, 255, 128, 0.6), 0 0 10px rgba(0, 255, 128, 0.4);
+    transform: scale(1.06);
+    outline: none;
+    z-index: 2;
+}
+
+.tile:focus img {
+    filter: brightness(1.3) saturate(1.2);
+}
+
+a {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
