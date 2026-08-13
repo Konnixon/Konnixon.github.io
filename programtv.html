@@ -7,233 +7,198 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-/* ===== EPG STYLE ===== */
-:root{
-    --bg:#020617;
-    --panel:#050b1f;
-    --accent:#00b7ff;
-    --muted:#9ca3af;
-    --minute-width:4;
-    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+/* ===== EPG STYLE (izolowane, nie nadpisują topbaru) ===== */
+#epg-wrapper {
+    position: relative;
+    height: calc(100vh - 70px);
+    overflow: hidden;
+    background: radial-gradient(circle at top,#0b1733,#020617);
+    padding: 16px 20px;
+    box-sizing: border-box;
+    color: #f9fafb;
+    font-family: system-ui;
 }
 
-html,body{
-    margin:0;
-    height:100%;
-    background:radial-gradient(circle at top,#0b1733,#020617);
-    color:#f9fafb;
-    overflow:hidden;
+.epg-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
 }
 
-.epg-shell{
-    display:flex;
-    flex-direction:column;
-    height:100%;
-    padding:16px 20px;
-    box-sizing:border-box;
-    gap:12px;
+.epg-title {
+    font-size: 20px;
+    font-weight: 600;
 }
 
-.epg-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+.epg-time {
+    font-size: 14px;
+    color: #9ca3af;
 }
 
-.epg-title{
-    font-size:20px;
-    font-weight:600;
+.time-row {
+    display: flex;
+    margin-left: 180px;
+    position: relative;
 }
 
-.epg-time{
-    font-size:14px;
-    color:var(--muted);
+.time-slot {
+    width: 120px;
+    text-align: center;
+    font-size: 12px;
+    color: #9ca3af;
 }
 
-.epg-main{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    position:relative;
+.now-line {
+    position: absolute;
+    top: 90px;
+    bottom: 0;
+    width: 2px;
+    background: #00b7ff;
+    box-shadow: 0 0 12px rgba(0,183,255,.8);
+    pointer-events: none;
 }
 
-.time-row{
-    display:flex;
-    margin-left:180px;
-    position:relative;
+.epg-grid {
+    height: calc(100% - 80px);
+    overflow-x: auto;
+    overflow-y: auto;
+    background: linear-gradient(180deg,#050b1f,#020617);
+    border-radius: 12px;
+    padding: 8px 0;
 }
 
-.time-slot{
-    width:120px;
-    text-align:center;
-    font-size:12px;
-    color:var(--muted);
+.channel-row {
+    display: flex;
+    height: 72px;
+    align-items: center;
 }
 
-.now-line{
-    position:absolute;
-    top:32px;
-    bottom:0;
-    width:2px;
-    background:var(--accent);
-    box-shadow:0 0 12px rgba(0,183,255,.8);
-    pointer-events:none;
+.channel-info {
+    width: 180px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.epg-grid{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-    overflow:auto;
-    position:relative;
-    background:linear-gradient(180deg,#050b1f,#020617);
-    border-radius:12px;
-    padding:8px 0;
+.channel-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: #111827;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
 }
 
-.channel-row{
-    display:flex;
-    position:relative;
-    height:72px;
-    align-items:center;
+.channel-name {
+    font-size: 14px;
+    font-weight: 500;
 }
 
-.channel-info{
-    width:180px;
-    padding:0 12px;
-    display:flex;
-    align-items:center;
-    gap:10px;
+.program-track {
+    flex: 1;
+    position: relative;
+    height: 100%;
 }
 
-.channel-logo{
-    width:40px;
-    height:40px;
-    border-radius:8px;
-    background:#111827;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:11px;
-    font-weight:600;
+.program {
+    position: absolute;
+    top: 8px;
+    height: 56px;
+    border-radius: 10px;
+    background: linear-gradient(135deg,#0b1f3b,#12254a);
+    border: 1px solid rgba(148,163,184,.35);
+    box-shadow: 0 10px 24px rgba(15,23,42,.8);
+    padding: 6px 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 12px;
+    cursor: pointer;
 }
 
-.channel-name{
-    font-size:14px;
-    font-weight:500;
+.program-title {
+    font-weight: 600;
+    font-size: 13px;
 }
 
-.program-track{
-    flex:1;
-    position:relative;
-    height:100%;
+.program-time {
+    color: #9ca3af;
+    font-size: 11px;
 }
 
-.program{
-    position:absolute;
-    top:8px;
-    height:56px;
-    border-radius:10px;
-    background:linear-gradient(135deg,#0b1f3b,#12254a);
-    border:1px solid rgba(148,163,184,.35);
-    box-shadow:0 10px 24px rgba(15,23,42,.8);
-    padding:6px 10px;
-    box-sizing:border-box;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    font-size:12px;
-    cursor:pointer;
-    transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;
+.program.current {
+    background: linear-gradient(135deg,#0b2f4f,#1d4ed8);
+    border-color: #38bdf8;
 }
 
-.program-title{
-    font-weight:600;
-    font-size:13px;
+/* ===== MODAL ===== */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
 }
 
-.program-time{
-    color:var(--muted);
-    font-size:11px;
+.modal {
+    width: 420px;
+    max-width: 90%;
+    background: #020617;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.9);
+    padding: 18px 20px;
+    border: 1px solid rgba(148,163,184,.4);
 }
 
-.program:focus{
-    outline:none;
-    transform:scale(1.05);
-    border-color:#38bdf8;
-    box-shadow:0 16px 40px rgba(56,189,248,.7);
-    z-index:10;
+.modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
 }
 
-.program.current{
-    background:linear-gradient(135deg,#0b2f4f,#1d4ed8);
-    border-color:#38bdf8;
+.modal-time {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 10px;
 }
 
-.modal-backdrop{
-    position:fixed;
-    inset:0;
-    background:rgba(15,23,42,.8);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:50;
+.modal-desc {
+    font-size: 13px;
+    color: #e5e7eb;
+    margin-bottom: 16px;
 }
 
-.modal{
-    width:420px;
-    max-width:90%;
-    background:#020617;
-    border-radius:16px;
-    box-shadow:0 24px 60px rgba(0,0,0,.9);
-    padding:18px 20px;
-    box-sizing:border-box;
-    border:1px solid rgba(148,163,184,.4);
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
-.modal-title{
-    font-size:18px;
-    font-weight:600;
-    margin-bottom:6px;
+.btn {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: none;
+    font-size: 13px;
+    cursor: pointer;
 }
 
-.modal-time{
-    font-size:13px;
-    color:var(--muted);
-    margin-bottom:10px;
+.btn-primary {
+    background: #00b7ff;
+    color: #020617;
+    font-weight: 600;
 }
 
-.modal-desc{
-    font-size:13px;
-    color:#e5e7eb;
-    margin-bottom:16px;
-}
-
-.modal-actions{
-    display:flex;
-    justify-content:flex-end;
-    gap:10px;
-}
-
-.btn{
-    padding:8px 14px;
-    border-radius:999px;
-    border:none;
-    font-size:13px;
-    cursor:pointer;
-}
-
-.btn-primary{
-    background:var(--accent);
-    color:#020617;
-    font-weight:600;
-}
-
-.btn-secondary{
-    background:#111827;
-    color:#e5e7eb;
+.btn-secondary {
+    background: #111827;
+    color: #e5e7eb;
 }
 </style>
 
@@ -241,7 +206,7 @@ html,body{
 
 <body>
 
-<!-- ===== TOPBAR ===== -->
+<!-- ===== TOPBAR (zachowuje styl z style.css) ===== -->
 <nav class="topbar">
     <a href="aplikacje.html" tabindex="0">APLIKACJE</a>
     <a href="index.html" tabindex="0">STRONA GŁÓWNA</a>
@@ -253,24 +218,21 @@ html,body{
 </nav>
 
 <!-- ===== EPG ===== -->
-<div class="epg-shell">
+<div id="epg-wrapper">
+    <div class="epg-header">
+        <div class="epg-title">SkyOS Guide – Program TV</div>
+        <div class="epg-time" id="clock"></div>
+    </div>
 
-<header class="epg-header">
-    <div class="epg-title">SkyOS Guide – Program TV</div>
-    <div class="epg-time" id="clock"></div>
-</header>
-
-<section class="epg-main">
     <div class="time-row" id="timeRow"></div>
     <div class="now-line" id="nowLine"></div>
-    <div class="epg-grid" id="epgGrid"></div>
-</section>
 
+    <div class="epg-grid" id="epgGrid"></div>
 </div>
 
 <!-- ===== MODAL ===== -->
 <div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal">
         <div class="modal-title" id="modalTitle"></div>
         <div class="modal-time" id="modalTime"></div>
         <div class="modal-desc" id="modalDesc"></div>
@@ -282,20 +244,46 @@ html,body{
 </div>
 
 <script>
-/* ===== LISTA KANAŁÓW ===== */
+/* ============================================================
+   1. LISTA KANAŁÓW (BBC One automatycznie)
+   ============================================================ */
 const channelFiles = [
-    "https://www.bbc.co.uk/schedules/p00fzl6p.json", // BBC One (automatyczne)
-    "channels/polsat.json",
-    "channels/tvp1.json",
-    "channels/tvp2.json",
-    "channels/tvp3.json"
+    "https://www.bbc.co.uk/schedules/p00fzl6p.json", // BBC One
 ];
 
-let epgData = [];
-let programElements = [];
-let focusedProgram = null;
+/* ============================================================
+   2. KONWERSJA BBC JSON → TWÓJ FORMAT
+   ============================================================ */
+function convertTime(iso){
+    const d = new Date(iso);
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mm = String(d.getMinutes()).padStart(2,"0");
+    return `${hh}:${mm}`;
+}
 
-/* ===== CZAS ===== */
+async function loadChannel(file){
+    const res = await fetch(file);
+    const data = await res.json();
+
+    if(data.broadcasts){
+        return {
+            name: "BBC One",
+            logo: "BBC One.png",
+            programs: data.broadcasts.map(p => ({
+                title: p.title,
+                start: convertTime(p.start),
+                end: convertTime(p.end),
+                desc: p.short_synopsis || ""
+            }))
+        };
+    }
+
+    return data;
+}
+
+/* ============================================================
+   3. RENDER CZASU
+   ============================================================ */
 const dayStart = "06:00";
 const dayEnd = "24:00";
 
@@ -307,75 +295,34 @@ function parseTime(str){
 const startMinutes = parseTime(dayStart);
 const endMinutes = parseTime(dayEnd);
 
-/* ===== KONWERSJA ISO → HH:MM ===== */
-function convertToTime(iso){
-    const d = new Date(iso);
-    const hh = String(d.getHours()).padStart(2,"0");
-    const mm = String(d.getMinutes()).padStart(2,"0");
-    return `${hh}:${mm}`;
-}
-
-/* ===== ŁADOWANIE JSON ===== */
-async function loadChannel(file){
-    const res = await fetch(file);
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-
-    /* BBC JSON → Twój format */
-    if(data.broadcasts){
-        return {
-            name: "BBC One",
-            logo: "BBC One.png",
-            programs: data.broadcasts.map(b => ({
-                title: b.title,
-                start: convertToTime(b.start),
-                end: convertToTime(b.end),
-                desc: b.short_synopsis || ""
-            }))
-        };
-    }
-
-    return data;
-}
-
-async function loadAllChannels(){
-    const loaded = [];
-    for(const file of channelFiles){
-        try{
-            const ch = await loadChannel(file);
-            loaded.push(ch);
-        }catch(err){
-            console.error("Błąd ładowania kanału:", file, err);
-        }
-    }
-    return loaded;
-}
-
-/* ===== RENDER CZASU ===== */
-const timeRow = document.getElementById("timeRow");
-
 function renderTimeRow(){
-    const minuteWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--minute-width"));
+    const row = document.getElementById("timeRow");
+    const minuteWidth = 4;
+
     for(let t = startMinutes; t <= endMinutes; t += 60){
         const slot = document.createElement("div");
         slot.className = "time-slot";
         const h = String(Math.floor(t/60)).padStart(2,"0");
         slot.textContent = `${h}:00`;
-        slot.style.width = (60*minuteWidth) + "px";
-        timeRow.appendChild(slot);
+        slot.style.width = (60 * minuteWidth) + "px";
+        row.appendChild(slot);
     }
 }
 
-/* ===== RENDER EPG ===== */
-const epgGrid = document.getElementById("epgGrid");
+/* ============================================================
+   4. RENDER EPG
+   ============================================================ */
+async function renderEPG(){
+    const epgGrid = document.getElementById("epgGrid");
+    const channels = [];
 
-function renderEPG(){
-    epgGrid.innerHTML = "";
-    programElements = [];
+    for(const file of channelFiles){
+        channels.push(await loadChannel(file));
+    }
 
-    const minuteWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--minute-width"));
+    const minuteWidth = 4;
 
-    epgData.forEach((channel, chIndex)=>{
+    channels.forEach((channel, chIndex)=>{
         const row = document.createElement("div");
         row.className = "channel-row";
 
@@ -396,7 +343,7 @@ function renderEPG(){
         const track = document.createElement("div");
         track.className = "program-track";
 
-        (channel.programs || []).forEach((p, pIndex)=>{
+        channel.programs.forEach(p=>{
             const start = parseTime(p.start);
             const end = parseTime(p.end);
             const duration = end - start;
@@ -404,28 +351,17 @@ function renderEPG(){
             const left = (start - startMinutes) * minuteWidth;
             const width = duration * minuteWidth;
 
-            const prog = document.createElement("button");
+            const prog = document.createElement("div");
             prog.className = "program";
             prog.style.left = left + "px";
             prog.style.width = width + "px";
-            prog.tabIndex = 0;
 
-            prog.dataset.channelIndex = chIndex;
-            prog.dataset.programIndex = pIndex;
-
-            const title = document.createElement("div");
-            title.className = "program-title";
-            title.textContent = p.title;
-
-            const time = document.createElement("div");
-            time.className = "program-time";
-            time.textContent = `${p.start} – ${p.end}`;
-
-            prog.appendChild(title);
-            prog.appendChild(time);
+            prog.innerHTML = `
+                <div class="program-title">${p.title}</div>
+                <div class="program-time">${p.start} – ${p.end}</div>
+            `;
 
             track.appendChild(prog);
-            programElements.push(prog);
         });
 
         row.appendChild(info);
@@ -433,172 +369,42 @@ function renderEPG(){
         epgGrid.appendChild(row);
     });
 
-    setupProgramEvents();
-    markCurrentPrograms();
     scrollToNow();
-
-    if(programElements[0]){
-        focusedProgram = programElements[0];
-        focusedProgram.focus();
-    }
 }
 
-/* ===== NOW LINE ===== */
-const nowLine = document.getElementById("nowLine");
-
-function updateNowLine(){
-    const now = new Date();
-    const minutesNow = now.getHours()*60 + now.getMinutes();
-    const clamped = Math.max(startMinutes, Math.min(endMinutes, minutesNow));
-    const offsetMinutes = clamped - startMinutes;
-
-    const minuteWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--minute-width"));
-    const px = offsetMinutes * minuteWidth;
-
-    nowLine.style.left = (180 + px) + "px";
-}
-
+/* ============================================================
+   5. NOW LINE
+   ============================================================ */
 function scrollToNow(){
     const now = new Date();
     const minutesNow = now.getHours()*60 + now.getMinutes();
     const offsetMinutes = Math.max(0, minutesNow - startMinutes);
 
-    const minuteWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--minute-width"));
-    const px = offsetMinutes * minuteWidth;
+    const px = offsetMinutes * 4;
+    document.getElementById("epgGrid").scrollLeft = px - 200;
 
-    epgGrid.scrollLeft = px - 200;
+    document.getElementById("nowLine").style.left = (180 + px) + "px";
 }
 
-function markCurrentPrograms(){
-    const now = new Date();
-    const minutesNow = now.getHours()*60 + now.getMinutes();
-
-    programElements.forEach(el=>{
-        const ch = epgData[el.dataset.channelIndex];
-        const p = ch.programs[el.dataset.programIndex];
-
-        const s = parseTime(p.start);
-        const e = parseTime(p.end);
-
-        if(minutesNow >= s && minutesNow < e){
-            el.classList.add("current");
-        }else{
-            el.classList.remove("current");
-        }
-    });
-}
-
-/* ===== ZEGAR ===== */
-const clockEl = document.getElementById("clock");
-
+/* ============================================================
+   6. CLOCK
+   ============================================================ */
 function updateClock(){
     const now = new Date();
     const h = String(now.getHours()).padStart(2,"0");
     const m = String(now.getMinutes()).padStart(2,"0");
-    clockEl.textContent = `Teraz: ${h}:${m}`;
+    document.getElementById("clock").textContent = `Teraz: ${h}:${m}`;
 }
 
-/* ===== MODAL ===== */
-const modalBackdrop = document.getElementById("modalBackdrop");
-const modalTitle = document.getElementById("modalTitle");
-const modalTime = document.getElementById("modalTime");
-const modalDesc = document.getElementById("modalDesc");
-const modalClose = document.getElementById("modalClose");
-
-function openProgramDetails(el){
-    const ch = epgData[el.dataset.channelIndex];
-    const p = ch.programs[el.dataset.programIndex];
-
-    modalTitle.textContent = p.title;
-    modalTime.textContent = `${ch.name} • ${p.start} – ${p.end}`;
-    modalDesc.textContent = p.desc || "Brak dodatkowego opisu.";
-
-    modalBackdrop.style.display = "flex";
-}
-
-function closeModal(){
-    modalBackdrop.style.display = "none";
-}
-
-modalClose.addEventListener("click", closeModal);
-modalBackdrop.addEventListener("click", e=>{
-    if(e.target === modalBackdrop) closeModal();
-});
-
-/* ===== NAWIGACJA PILOTEM ===== */
-function setupProgramEvents(){
-    programElements.forEach(el=>{
-        el.addEventListener("click", ()=>openProgramDetails(el));
-        el.addEventListener("focus", ()=>{ focusedProgram = el; });
-    });
-}
-
-document.addEventListener("keydown", e=>{
-    if(modalBackdrop.style.display === "flex"){
-        if(e.key === "Escape") closeModal();
-        return;
-    }
-
-    if(!focusedProgram) return;
-
-    const key = e.key;
-    const idx = programElements.indexOf(focusedProgram);
-
-    if(idx === -1) return;
-
-    if(key === "Enter"){
-        openProgramDetails(focusedProgram);
-        e.preventDefault();
-        return;
-    }
-
-    const curCh = Number(focusedProgram.dataset.channelIndex);
-    const curP = Number(focusedProgram.dataset.programIndex);
-
-    if(key === "ArrowRight"){
-        const next = programElements.find(el =>
-            Number(el.dataset.channelIndex) === curCh &&
-            Number(el.dataset.programIndex) === curP + 1
-        );
-        if(next){ focusedProgram = next; focusedProgram.focus(); }
-        e.preventDefault();
-    }else if(key === "ArrowLeft"){
-        const prev = programElements.find(el =>
-            Number(el.dataset.channelIndex) === curCh &&
-            Number(el.dataset.programIndex) === curP - 1
-        );
-        if(prev){ focusedProgram = prev; focusedProgram.focus(); }
-        e.preventDefault();
-    }else if(key === "ArrowDown"){
-        const nextCh = programElements.find(el =>
-            Number(el.dataset.channelIndex) === curCh + 1 &&
-            Number(el.dataset.programIndex) === curP
-        );
-        if(nextCh){ focusedProgram = nextCh; focusedProgram.focus(); }
-        e.preventDefault();
-    }else if(key === "ArrowUp"){
-        const prevCh = programElements.find(el =>
-            Number(el.dataset.channelIndex) === curCh - 1 &&
-            Number(el.dataset.programIndex) === curP
-        );
-        if(prevCh){ focusedProgram = prevCh; focusedProgram.focus(); }
-        e.preventDefault();
-    }
-});
-
-/* ===== START ===== */
+/* ============================================================
+   7. START
+   ============================================================ */
 (async function init(){
-    renderTimeRow();
     updateClock();
-    setInterval(updateClock, 30*1000);
+    setInterval(updateClock, 30000);
 
-    updateNowLine();
-    setInterval(updateNowLine, 60*1000);
-
-    epgData = await loadAllChannels();
-    renderEPG();
-
-    setInterval(markCurrentPrograms, 60*1000);
+    renderTimeRow();
+    await renderEPG();
 })();
 </script>
 
